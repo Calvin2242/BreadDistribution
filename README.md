@@ -35,11 +35,11 @@ A simple web app that helps PPKI students sell bread baked by the school bakery.
 
 **For students**
 - Large, touch-friendly buttons designed for phones and tablets
+- No login or student name needed: just pick the bread and type the buyer's name
 - Tap a bread card to select it. Each card shows the number left
 - Choose the quantity with + / − buttons
 - Enter the buyer's name and choose payment mode (Cash or QR)
 - The total price is calculated automatically
-- Their own name is remembered on the device
 - Sold-out bread is greyed out and can't be selected
 - Light and dark mode follow the device setting
 
@@ -159,18 +159,17 @@ Notes:
 ### Students: selling
 
 1. Open the site on the **Sell** tab.
-2. Enter **your name** (only needed once per device).
-3. Tap the **bread** the buyer wants.
-4. Enter the **buyer's name** (e.g. `Cikgu Aminah`).
-5. Set the **quantity** with + and −.
-6. Choose **Cash** or **QR**.
-7. Check the total, then tap **Record sale**.
+2. Tap the **bread** the buyer wants.
+3. Enter the **buyer's name** (e.g. `Cikgu Aminah`).
+4. Set the **quantity** with + and −.
+5. Choose **Cash** or **QR**.
+6. Check the total, then tap **Record sale**.
 
 A green confirmation appears when the sale is saved, and the stock count updates.
 
 ### Teacher: end of the day
 
-1. Open **Sales today** to see the total, cash and QR amounts, plus every sale with time, student name and payment mode.
+1. Open **Sales today** to see the total, cash and QR amounts, plus every sale with time, buyer and payment mode.
 2. Use the cash and QR totals to check against the money collected.
 3. Use the date picker at the top to review earlier days.
 
@@ -197,12 +196,12 @@ Two tabs are created automatically. Don't rename the tabs or change the header r
 
 ### `Sales` tab
 
-| ID | Date | Time | Student | Bread | Qty | Total | Buyer | Payment |
-|----|------|------|---------|-------|-----|-------|-------|---------|
-| 1729584000000 | 2026-10-22 | 10:15 | Ali | Roti Kaya | 2 | 5 | Cikgu Aminah | Cash |
+| ID | Date | Time | Bread | Qty | Total | Buyer | Payment |
+|----|------|------|-------|-----|-------|-------|---------|
+| 1729584000000 | 2026-10-22 | 10:15 | Roti Kaya | 2 | 5 | Cikgu Aminah | Cash |
 
 - The `ID` is generated automatically and is used by the Cancel button.
-- Because everything is in a normal Google Sheet, you can make pivot tables, filter by student, or export to Excel for weekly or termly reports.
+- Because everything is in a normal Google Sheet, you can make pivot tables, filter by bread or payment mode, or export to Excel for weekly or termly reports.
 
 ---
 
@@ -253,7 +252,7 @@ This system is intentionally simple.
 
 - **Add a teacher PIN** to protect the *Add bread* and *Cancel sale* actions.
 - **Add a "Paid / Not paid yet" option** for buyers who will pay later.
-- **Add a weekly summary tab** in the Google Sheet using a pivot table (total sales per student or per bread).
+- **Add a weekly summary tab** in the Google Sheet using a pivot table (total sales per bread or per day).
 - **Change colours:** edit the colour variables at the top of the `<style>` section in `index.html` (`--gold`, `--teal`, `--ink`, etc.).
 - **Change the title or logo:** edit the `<h1>` and `<title>` in `index.html`.
 

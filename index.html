@@ -64,9 +64,7 @@ input[type=text],input[type=number]{width:100%;font:inherit;padding:12px;border:
   <section id="sell">
     <div id="breads" class="grid"></div>
     <div class="box" id="form">
-      <label for="student" style="margin-top:0">Your name</label>
-      <input type="text" id="student" placeholder="Student name" autocomplete="off">
-      <label for="buyer">Buyer's name</label>
+      <label for="buyer" style="margin-top:0">Buyer's name</label>
       <input type="text" id="buyer" placeholder="e.g. Cikgu Aminah" autocomplete="off">
       <label>How many?</label>
       <div class="row qty">
@@ -107,14 +105,13 @@ input[type=text],input[type=number]{width:100%;font:inherit;padding:12px;border:
 
 <script>
 // 1) Paste your Apps Script Web app URL here:
-const API = "https://script.google.com/macros/s/AKfycbwkMnTzsLRIJAt5elG3N222VdQAUcg2ULGKii4l_AnRhRzFa5VXr-o6CWrIMsAYOfg/exec";
+const API = "PASTE_YOUR_WEB_APP_URL_HERE";
 
 const $ = id => document.getElementById(id);
 const rm = n => "RM" + (Math.round(n * 100) / 100).toFixed(2).replace(/\.00$/, "");
 let S = { bread: [], sales: [] }, pick = null, qty = 1, pay = "Cash";
 
 $("date").value = new Date().toLocaleDateString("en-CA");
-$("student").value = localStorage.getItem("student") || "";
 
 function toast(msg, err) {
   const t = $("toast"); t.textContent = msg; t.className = "toast show" + (err ? " err" : "");
@@ -155,7 +152,7 @@ function render() {
   const sum = p => S.sales.filter(s => !p || s.payment === p).reduce((a, s) => a + s.total, 0);
   $("tAll").textContent = rm(sum()); $("tCash").textContent = rm(sum("Cash")); $("tQR").textContent = rm(sum("QR"));
   $("salesList").innerHTML = S.sales.length ? S.sales.map(s => `
-    <div class="sale"><span><b>${s.qty} × ${esc(s.bread)}</b> for ${esc(s.buyer)}<small>${esc(s.time)} · ${esc(s.student)} · ${esc(s.payment)}</small></span>
+    <div class="sale"><span><b>${s.qty} × ${esc(s.bread)}</b> for ${esc(s.buyer)}<small>${esc(s.time)} · ${esc(s.payment)}</small></span>
     <span style="text-align:right"><b>${rm(s.total)}</b><br><button class="void" data-id="${s.id}">Cancel</button></span></div>`).join("") : `<div class="empty">No sales yet</div>`;
 }
 
@@ -179,13 +176,11 @@ document.querySelectorAll(".pay button").forEach(b => b.onclick = () => {
 });
 
 $("submit").onclick = async () => {
-  const student = $("student").value.trim(), buyer = $("buyer").value.trim();
-  if (!student) return toast("Please enter your name", true);
+  const buyer = $("buyer").value.trim();
   if (!buyer) return toast("Please enter the buyer's name", true);
-  localStorage.setItem("student", student);
   $("submit").disabled = true;
   try {
-    await send({ action: "sale", date: $("date").value, student, buyer, bread: pick, qty, payment: pay });
+    await send({ action: "sale", date: $("date").value, buyer, bread: pick, qty, payment: pay });
     toast("Sale recorded ✓"); $("buyer").value = ""; qty = 1;
   } catch (e) { toast(e.message, true); }
   await load();
