@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PPKI Bakery</title>
+<style>
+:root{--bg:#f2f5f7;--card:#fff;--ink:#14213d;--mute:#5d6b82;--line:#d8e0e8;--gold:#e9a820;--goldink:#3b2a00;--teal:#17806f;--red:#c0392b}
+@media (prefers-color-scheme:dark){:root{--bg:#0e1626;--card:#17233a;--ink:#eef2f8;--mute:#9aa8c0;--line:#2b3a57;--gold:#f0b43a;--goldink:#2a1d00;--teal:#3cc4ad;--red:#ff7a6b}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 ui-rounded,"Segoe UI",system-ui,sans-serif;padding-bottom:40px}
+header{background:var(--ink);color:var(--bg);padding:14px 16px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+@media (prefers-color-scheme:dark){header{background:#050a14;color:#eef2f8}}
+h1{font-size:1.3rem;margin:0}
+header input{font:inherit;padding:6px 8px;border-radius:8px;border:0}
+nav{display:flex;position:sticky;top:0;background:var(--bg);border-bottom:2px solid var(--line);z-index:5}
+nav button{flex:1;padding:14px 4px;font:inherit;font-weight:700;border:0;background:none;color:var(--mute);border-bottom:4px solid transparent;margin-bottom:-2px;cursor:pointer}
+nav button.on{color:var(--ink);border-color:var(--gold)}
+main{max-width:720px;margin:0 auto;padding:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.bread{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:14px;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.bread.on{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold)}
+.bread:disabled{opacity:.45;cursor:not-allowed}
+.bread b{display:block;font-size:1.1rem}
+.bread .left{font-size:1.8rem;font-weight:800;line-height:1.1;margin-top:6px}
+.bread small{color:var(--mute)}
+.box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:14px}
+label{display:block;font-weight:700;margin:12px 0 6px}
+input[type=text],input[type=number]{width:100%;font:inherit;padding:12px;border:2px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.row{display:flex;gap:10px;align-items:center}
+.qty button{width:56px;height:56px;font-size:1.8rem;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.qty output{flex:1;text-align:center;font-size:2rem;font-weight:800}
+.pay{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pay button{padding:14px;font:inherit;font-weight:700;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.pay button.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.total{font-size:1.5rem;font-weight:800;margin:16px 0 8px}
+.go{width:100%;padding:16px;font:inherit;font-size:1.1rem;font-weight:800;border:0;border-radius:12px;background:var(--gold);color:var(--goldink);cursor:pointer}
+.go:disabled{opacity:.5}
+.sale{display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}
+.sale:last-child{border:0}
+.sale small{color:var(--mute);display:block}
+.void{background:none;border:0;color:var(--red);font:inherit;cursor:pointer}
+.sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.sum b{display:block;font-size:1.3rem}
+.sum span{color:var(--mute);font-size:.85rem}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90%}
+.toast.show{opacity:1}.toast.err{background:var(--red);color:#fff}
+.empty{color:var(--mute);text-align:center;padding:24px 0}
+.hide{display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>🥖 PPKI Bakery</h1>
+  <input type="date" id="date" aria-label="Date">
+</header>
+<nav>
+  <button data-tab="sell" class="on">Sell</button>
+  <button data-tab="stock">Add bread</button>
+  <button data-tab="log">Sales today</button>
+</nav>
+
+<main>
+  <section id="sell">
+    <div id="breads" class="grid"></div>
+    <div class="box" id="form">
+      <label for="student" style="margin-top:0">Your name</label>
+      <input type="text" id="student" placeholder="Student name" autocomplete="off">
+      <label for="buyer">Buyer's name</label>
+      <input type="text" id="buyer" placeholder="e.g. Cikgu Aminah" autocomplete="off">
+      <label>How many?</label>
+      <div class="row qty">
+        <button id="minus" aria-label="Less">−</button><output id="qty">1</output><button id="plus" aria-label="More">+</button>
+      </div>
+      <label>Payment</label>
+      <div class="pay"><button data-pay="Cash" class="on">💵 Cash</button><button data-pay="QR">📱 QR</button></div>
+      <div class="total" id="total">Pick a bread above</div>
+      <button class="go" id="submit" disabled>Record sale</button>
+    </div>
+  </section>
+
+  <section id="stock" class="hide">
+    <div class="box" style="margin-top:0">
+      <label for="sname" style="margin-top:0">Bread type</label>
+      <input type="text" id="sname" list="names" placeholder="e.g. Roti Kaya">
+      <datalist id="names"></datalist>
+      <label for="sqty">Amount produced</label>
+      <input type="number" id="sqty" min="1" inputmode="numeric">
+      <label for="sprice">Price each (RM)</label>
+      <input type="number" id="sprice" min="0" step="0.10" inputmode="decimal">
+      <div style="height:16px"></div>
+      <button class="go" id="addStock">Add to today's stock</button>
+    </div>
+    <div class="box"><b>Today's stock</b><div id="stockList"></div></div>
+  </section>
+
+  <section id="log" class="hide">
+    <div class="box sum" style="margin-top:0">
+      <div><b id="tAll">RM0</b><span>Total</span></div>
+      <div><b id="tCash">RM0</b><span>Cash</span></div>
+      <div><b id="tQR">RM0</b><span>QR</span></div>
+    </div>
+    <div class="box" id="salesList"></div>
+  </section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+// 1) Paste your Apps Script Web app URL here:
+const API = "https://script.google.com/macros/s/AKfycbwkMnTzsLRIJAt5elG3N222VdQAUcg2ULGKii4l_AnRhRzFa5VXr-o6CWrIMsAYOfg/exec";
+
+const $ = id => document.getElementById(id);
+const rm = n => "RM" + (Math.round(n * 100) / 100).toFixed(2).replace(/\.00$/, "");
+let S = { bread: [], sales: [] }, pick = null, qty = 1, pay = "Cash";
+
+$("date").value = new Date().toLocaleDateString("en-CA");
+$("student").value = localStorage.getItem("student") || "";
+
+function toast(msg, err) {
+  const t = $("toast"); t.textContent = msg; t.className = "toast show" + (err ? " err" : "");
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.className = "toast", 2600);
+}
+
+async function load() {
+  try {
+    const r = await (await fetch(API + "?date=" + $("date").value)).json();
+    if (!r.ok) throw new Error(r.error);
+    S = r;
+    if (pick && !S.bread.find(b => b.name === pick)) pick = null;
+    render();
+  } catch (e) { toast("Can't load data. Check connection or API link.", true); }
+}
+
+async function send(body) {
+  const r = await (await fetch(API, { method: "POST", body: JSON.stringify(body) })).json();
+  if (!r.ok) throw new Error(r.error);
+}
+
+function render() {
+  const b = S.bread;
+  $("breads").innerHTML = b.length ? b.map(x => `
+    <button class="bread ${pick === x.name ? "on" : ""}" data-n="${esc(x.name)}" ${x.left < 1 ? "disabled" : ""}>
+      <b>${esc(x.name)}</b><small>${rm(x.price)} each</small>
+      <div class="left">${x.left}</div><small>${x.left < 1 ? "sold out" : "left"}</small>
+    </button>`).join("") : `<div class="empty" style="grid-column:1/-1">No bread added for this date yet.<br>Teacher: use "Add bread".</div>`;
+  $("names").innerHTML = b.map(x => `<option value="${esc(x.name)}">`).join("");
+  $("stockList").innerHTML = b.length ? b.map(x => `<div class="sale"><span>${esc(x.name)}<small>${rm(x.price)} each</small></span><span>${x.sold}/${x.produced} sold</span></div>`).join("") : `<div class="empty">Nothing yet</div>`;
+
+  const cur = b.find(x => x.name === pick);
+  if (cur && qty > cur.left) qty = Math.max(1, cur.left);
+  $("qty").textContent = qty;
+  $("total").textContent = cur ? `${qty} × ${esc(cur.name)} = ${rm(qty * cur.price)}` : "Pick a bread above";
+  $("submit").disabled = !cur;
+
+  const sum = p => S.sales.filter(s => !p || s.payment === p).reduce((a, s) => a + s.total, 0);
+  $("tAll").textContent = rm(sum()); $("tCash").textContent = rm(sum("Cash")); $("tQR").textContent = rm(sum("QR"));
+  $("salesList").innerHTML = S.sales.length ? S.sales.map(s => `
+    <div class="sale"><span><b>${s.qty} × ${esc(s.bread)}</b> for ${esc(s.buyer)}<small>${esc(s.time)} · ${esc(s.student)} · ${esc(s.payment)}</small></span>
+    <span style="text-align:right"><b>${rm(s.total)}</b><br><button class="void" data-id="${s.id}">Cancel</button></span></div>`).join("") : `<div class="empty">No sales yet</div>`;
+}
+
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+document.querySelectorAll("nav button").forEach(btn => btn.onclick = () => {
+  document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x === btn));
+  ["sell", "stock", "log"].forEach(id => $(id).classList.toggle("hide", id !== btn.dataset.tab));
+  load();
+});
+
+$("breads").onclick = e => {
+  const c = e.target.closest(".bread"); if (!c || c.disabled) return;
+  pick = c.dataset.n; qty = 1; render();
+};
+$("minus").onclick = () => { if (qty > 1) qty--; render(); };
+$("plus").onclick = () => { const c = S.bread.find(x => x.name === pick); if (c && qty < c.left) qty++; render(); };
+document.querySelectorAll(".pay button").forEach(b => b.onclick = () => {
+  pay = b.dataset.pay;
+  document.querySelectorAll(".pay button").forEach(x => x.classList.toggle("on", x === b));
+});
+
+$("submit").onclick = async () => {
+  const student = $("student").value.trim(), buyer = $("buyer").value.trim();
+  if (!student) return toast("Please enter your name", true);
+  if (!buyer) return toast("Please enter the buyer's name", true);
+  localStorage.setItem("student", student);
+  $("submit").disabled = true;
+  try {
+    await send({ action: "sale", date: $("date").value, student, buyer, bread: pick, qty, payment: pay });
+    toast("Sale recorded ✓"); $("buyer").value = ""; qty = 1;
+  } catch (e) { toast(e.message, true); }
+  await load();
+};
+
+$("addStock").onclick = async () => {
+  const name = $("sname").value.trim(), q = +$("sqty").value, price = +$("sprice").value;
+  if (!name || q < 1 || !(price >= 0) || $("sprice").value === "") return toast("Fill in bread, amount and price", true);
+  $("addStock").disabled = true;
+  try {
+    await send({ action: "addStock", date: $("date").value, name, qty: q, price });
+    toast("Stock added ✓"); $("sname").value = $("sqty").value = $("sprice").value = "";
+  } catch (e) { toast(e.message, true); }
+  $("addStock").disabled = false; await load();
+};
+
+$("salesList").onclick = async e => {
+  const id = e.target.dataset.id; if (!id || !confirm("Cancel this sale? The bread goes back into stock.")) return;
+  try { await send({ action: "void", id }); toast("Sale cancelled"); } catch (err) { toast(err.message, true); }
+  await load();
+};
+
+$("date").onchange = load;
+load();
+</script>
+</body>
+</html>
