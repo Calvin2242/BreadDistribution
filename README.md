@@ -28,6 +28,7 @@ A simple web app that helps PPKI students sell bread baked by the school bakery.
 
 **For the teacher**
 - Add the bread produced each day: type, amount and price
+- Change the price of any bread at any time (e.g. for promotions) from the **Add bread** tab
 - See how many of each bread have been sold and how many are left
 - See total sales, split into cash and QR
 - Cancel a mistaken sale, which puts the bread back into stock
@@ -39,7 +40,7 @@ A simple web app that helps PPKI students sell bread baked by the school bakery.
 - Tap a bread card to select it. Each card shows the number left
 - Choose the quantity with + / − buttons
 - Enter the buyer's name and choose payment mode (Cash or QR)
-- The total price is calculated automatically
+- The total price is shown in large text and updates as the quantity changes
 - Sold-out bread is greyed out and can't be selected
 - Light and dark mode follow the device setting
 
@@ -166,6 +167,15 @@ Notes:
 6. Check the total, then tap **Record sale**.
 
 A green confirmation appears when the sale is saved, and the stock count updates.
+
+### Teacher: changing prices (promotions)
+
+1. Open **Add bread**. Under **Today's stock & prices**, each bread has a price box.
+2. Type the new price (e.g. `1.50` for a promotion) and tap **Save**.
+3. The new price applies to all **new** sales straight away. Sales already recorded keep the price they were sold at.
+4. To end the promotion, change the price back and tap **Save**.
+
+Prices are set per day. Each new day, the price you enter when adding that day's stock is used.
 
 ### Teacher: end of the day
 
