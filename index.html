@@ -51,12 +51,19 @@ input[type=text],input[type=number]{width:100%;font:inherit;padding:12px;border:
 .toast.show{opacity:1}.toast.err{background:var(--red);color:#fff}
 .empty{color:var(--mute);text-align:center;padding:24px 0}
 .hide{display:none}
+#pin{position:fixed;inset:0;background:rgba(5,10,20,.82);display:flex;align-items:center;justify-content:center;z-index:20}
+#pin.hide{display:none}
+.pinbox{background:var(--card);border-radius:18px;padding:20px;width:min(320px,92vw);text-align:center}
+.dots{display:flex;gap:14px;justify-content:center;margin:16px 0 6px}.dots i{width:16px;height:16px;border-radius:50%;border:2px solid var(--mute)}.dots i.f{background:var(--gold);border-color:var(--gold)}
+#pinmsg{min-height:1.4em;color:var(--red);font-weight:700}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.pad button{padding:16px;font:inherit;font-size:1.4rem;font-weight:700;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
 </style>
 </head>
 <body>
 <header>
   <div class="brand"><img class="logo" src="logo.jpeg" alt="SMK Tansau logo" onerror="this.style.display='none'"><h1>PPKI SMK Tansau</h1></div>
-  <input type="date" id="date" aria-label="Date">
+  <span class="row"><button class="mini hide" id="pinBtn">🔑 Change PIN</button><button class="mini hide" id="lockBtn">🔒 Lock</button><input type="date" id="date" aria-label="Date"></span>
 </header>
 <nav>
   <button data-tab="sell" class="on">Sell</button>
@@ -118,11 +125,19 @@ input[type=text],input[type=number]{width:100%;font:inherit;padding:12px;border:
     <div class="box sum" id="repSum"></div>
   </section>
 </main>
+<div id="pin" class="hide" role="dialog" aria-modal="true" aria-label="Teacher PIN">
+  <div class="pinbox"><b id="pintitle">🔒 Teacher PIN</b>
+    <div class="dots" id="dots"><i></i><i></i><i></i><i></i></div><div id="pinmsg"></div>
+    <div class="pad" id="pad"></div>
+  </div>
+</div>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
 // 1) Paste your Apps Script Web app URL here:
-const API = "https://script.google.com/macros/s/AKfycbyvbEPd9dHRed3QeeFuVhlVTeiLVExghVFwfIrWwiDIVdO7JphS3uAJcFcy_Eu2y2Ms/exec";
+const API = "https://script.google.com/macros/s/AKfycbz0VDua4yrhu4N7z61ZPNIImWl-VCaeeIABEyMV_CMQ41OMOzmdALarUo_IhSXTc4OZFg/exec";
+// 2) How long the teacher screens stay unlocked (the PIN itself is set in Code.gs):
+const LOCK_MINUTES = 10, LOCK_MS = LOCK_MINUTES * 60000;
 
 const $ = id => document.getElementById(id);
 const rmf = n => "RM" + (+n).toFixed(2);
@@ -138,7 +153,7 @@ function toast(msg, err) {
 
 async function load() {
   try {
-    const r = await (await fetch(API + "?date=" + $("date").value)).json();
+    const r = await (await fetch(API + "?date=" + $("date").value + "&pin=" + adminPin)).json();
     if (!r.ok) throw new Error(r.error);
     S = r;
     if (pick && !S.bread.find(b => b.name === pick)) pick = null;
@@ -147,7 +162,7 @@ async function load() {
 }
 
 async function send(body) {
-  const r = await (await fetch(API, { method: "POST", body: JSON.stringify(body) })).json();
+  const r = await (await fetch(API, { method: "POST", body: JSON.stringify({ pin: adminPin, ...body }) })).json();
   if (!r.ok) throw new Error(r.error);
   return r;
 }
@@ -181,11 +196,13 @@ function render() {
 
 function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 
-document.querySelectorAll("nav button").forEach(btn => btn.onclick = () => {
+document.querySelectorAll("nav button").forEach(btn => btn.onclick = () => (btn.dataset.tab === "sell" || unlocked()) ? go(btn) : askPin(() => go(btn)));
+function go(btn) {
+  curTab = btn.dataset.tab; if (unlocked()) until = Date.now() + LOCK_MS;
   document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x === btn));
   ["sell", "stock", "log", "report"].forEach(id => $(id).classList.toggle("hide", id !== btn.dataset.tab));
   btn.dataset.tab === "report" ? loadReport() : load();
-});
+}
 
 $("breads").onclick = e => {
   const c = e.target.closest(".bread"); if (!c || c.disabled) return;
@@ -244,6 +261,56 @@ $("salesList").onclick = async e => {
   await load();
 };
 
+let until = 0, adminPin = "", pinBuf = "", pinThen = null, curTab = "sell", checking = false;
+const unlocked = () => Date.now() < until;
+$("pad").innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9, "✕", 0, "⌫"].map(k => `<button data-k="${k}">${k}</button>`).join("");
+function pinDraw(msg) {
+  document.querySelectorAll("#dots i").forEach((d, i) => d.classList.toggle("f", i < pinBuf.length));
+  $("pinmsg").textContent = msg || "";
+}
+let pinMode = "unlock", newPin = "";
+const pinOpen = (title, mode) => { pinMode = mode; pinBuf = ""; $("pintitle").textContent = title; pinDraw(); $("pin").classList.remove("hide"); };
+function askPin(then) { pinThen = then; pinOpen("🔒 Teacher PIN", "unlock"); }
+function askNew() { newPin = ""; pinOpen("🔑 Enter new PIN", "new"); }
+async function pinKey(k) {
+  if (checking) return;
+  if (k === "✕") return $("pin").classList.add("hide");
+  if (k === "⌫") pinBuf = pinBuf.slice(0, -1); else if (pinBuf.length < 4) pinBuf += k;
+  pinDraw();
+  if (pinBuf.length < 4) return;
+  if (pinMode === "new") { newPin = pinBuf; return pinOpen("🔑 Re-enter new PIN", "confirm"); }
+  if (pinMode === "confirm" && pinBuf !== newPin) { pinOpen("🔑 Enter new PIN", "new"); return pinDraw("PINs didn't match, try again"); }
+  const tryPin = pinBuf; checking = true; pinDraw("Checking…");
+  try {
+    if (pinMode === "confirm") {
+      await send({ action: "changePin", newPin }); adminPin = newPin;
+      $("pin").classList.add("hide"); toast("PIN changed ✓");
+    } else {
+      await send({ action: "checkPin", pin: tryPin }); adminPin = tryPin;
+      until = Date.now() + LOCK_MS;
+      $("pin").classList.add("hide"); refreshLock(); pinThen && pinThen();
+    }
+  } catch (e) {
+    pinBuf = ""; pinDraw(e.message === "Wrong PIN" ? "Wrong PIN, try again" : "Can't reach the server. Try again.");
+  }
+  checking = false;
+}
+function refreshLock() {
+  $("lockBtn").classList.toggle("hide", !unlocked()); $("pinBtn").classList.toggle("hide", !unlocked());
+  if (unlocked()) return;
+  adminPin = ""; S.sales = []; render();
+  if (curTab !== "sell") go(document.querySelector('nav [data-tab="sell"]'));
+}
+$("pad").onclick = e => e.target.dataset.k && pinKey(e.target.dataset.k);
+$("pinBtn").onclick = askNew;
+$("lockBtn").onclick = () => { until = 0; refreshLock(); };
+document.addEventListener("keydown", e => {
+  if ($("pin").classList.contains("hide")) return;
+  if (/^\d$/.test(e.key)) pinKey(e.key); else if (e.key === "Backspace") pinKey("⌫"); else if (e.key === "Escape") pinKey("✕");
+});
+document.addEventListener("pointerdown", () => { if (unlocked()) until = Date.now() + LOCK_MS; });
+setInterval(refreshLock, 10000);
+
 let days = 14;
 document.querySelectorAll(".seg button").forEach(b => b.onclick = () => {
   days = +b.dataset.days;
@@ -253,7 +320,7 @@ document.querySelectorAll(".seg button").forEach(b => b.onclick = () => {
 
 async function loadReport() {
   try {
-    const r = await (await fetch(API + "?action=report")).json();
+    const r = await (await fetch(API + "?action=report&pin=" + adminPin)).json();
     if (!r.ok) throw new Error(r.error);
     drawChart(r.days);
   } catch (e) { toast("Can't load report.", true); }
