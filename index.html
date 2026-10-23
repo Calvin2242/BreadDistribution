@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PPKI Bakery</title>
+<title>PPKI SMK Tansau</title>
 <style>
 :root{--bg:#f2f5f7;--card:#fff;--ink:#14213d;--mute:#5d6b82;--line:#d8e0e8;--gold:#e9a820;--goldink:#3b2a00;--teal:#17806f;--red:#c0392b}
 @media (prefers-color-scheme:dark){:root{--bg:#0e1626;--card:#17233a;--ink:#eef2f8;--mute:#9aa8c0;--line:#2b3a57;--gold:#f0b43a;--goldink:#2a1d00;--teal:#3cc4ad;--red:#ff7a6b}}
@@ -12,6 +12,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 ui-rounded,"Se
 header{background:var(--ink);color:var(--bg);padding:14px 16px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 @media (prefers-color-scheme:dark){header{background:#050a14;color:#eef2f8}}
 h1{font-size:1.3rem;margin:0}
+.brand{display:flex;align-items:center;gap:10px}.logo{height:42px;width:auto;border-radius:8px}
 header input{font:inherit;padding:6px 8px;border-radius:8px;border:0}
 nav{display:flex;position:sticky;top:0;background:var(--bg);border-bottom:2px solid var(--line);z-index:5}
 nav button{flex:1;padding:14px 2px;font:inherit;font-size:.88rem;font-weight:700;border:0;background:none;color:var(--mute);border-bottom:4px solid transparent;margin-bottom:-2px;cursor:pointer}
@@ -54,7 +55,7 @@ input[type=text],input[type=number]{width:100%;font:inherit;padding:12px;border:
 </head>
 <body>
 <header>
-  <h1>🥖 PPKI Bakery</h1>
+  <div class="brand"><img class="logo" src="logo.jpeg" alt="SMK Tansau logo" onerror="this.style.display='none'"><h1>PPKI SMK Tansau</h1></div>
   <input type="date" id="date" aria-label="Date">
 </header>
 <nav>
