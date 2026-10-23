@@ -33,6 +33,8 @@ A simple web app that helps PPKI students sell bread baked by the school bakery.
 - See total sales, split into cash and QR
 - Cancel a mistaken sale, which puts the bread back into stock
 - Look at any past day with the date picker
+- See a bar chart of daily sales (cash and QR) for the last 7, 14 or 30 days, with total, daily average and best day
+- Remove unsold bread from stock (for example, a typing mistake or bread that was burnt or dropped)
 
 **For students**
 - Large, touch-friendly buttons designed for phones and tablets
@@ -183,12 +185,31 @@ Prices are set per day. Each new day, the price you enter when adding that day's
 2. Use the cash and QR totals to check against the money collected.
 3. Use the date picker at the top to review earlier days.
 
+### Teacher: viewing the sales graph
+
+1. Open the **Report** tab.
+2. Choose **7**, **14** or **30 days**. The chart ends on the date selected at the top of the page.
+3. Each bar is one day's sales. The **gold** part is cash and the **teal** part is QR. Hover over (or long-press) a bar to see the exact amounts.
+4. Below the chart you'll see the total for the period, the daily average and the best day.
+
+Days with no sales show as empty gaps.
+
+### Teacher: removing stock
+
+1. Open **Add bread**. Under **Today's stock & prices**, find the bread.
+2. In the **Remove unsold** row, type how many to take out. The box starts with all unsold bread filled in.
+3. Tap **Remove** and confirm.
+
+You can only remove bread that hasn't been sold, so the amount can't be higher than the number left. If the bread was already sold by mistake, cancel those sales first in **Sales today**. If you remove all of a bread that had no sales, it disappears from the Sell screen.
+
 ### Fixing mistakes
 
 | Problem | How to fix |
 |---------|-----------|
 | A sale was entered wrongly | **Sales today → Cancel** on that sale, then record it again correctly. The bread goes back into stock. |
-| Wrong amount or price in stock | Open the Google Sheet, go to the **Stock** tab, and edit or delete the row. |
+| Added too much stock | **Add bread → Remove unsold** (see above). |
+| Wrong price | **Add bread → Price → Save**. |
+| Anything else in stock | Open the Google Sheet, go to the **Stock** tab, and edit or delete the row. |
 | Wrong bread name in stock | Edit the name in the **Stock** tab. If sales were already made under the old name, edit those in **Sales** too. |
 
 ---
@@ -203,6 +224,9 @@ Two tabs are created automatically. Don't rename the tabs or change the header r
 |------|-------|-----|-------|
 | 2026-10-22 | Roti Kaya | 10 | 2.5 |
 | 2026-10-22 | Donut | 20 | 1.5 |
+| 2026-10-22 | Donut | -3 | 1.5 |
+
+A negative `Qty` is a removal made with the **Remove** button. The amounts for each day and bread are added together, so the Donut row above means 17 donuts in stock.
 
 ### `Sales` tab
 
